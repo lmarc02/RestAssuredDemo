@@ -1,13 +1,23 @@
 import java.util.List;
 import java.util.Map;
 
-public class AddPetModal {
+public class AddPetRequetBody {
     private Integer id;
     private Map<String, String> category;
     private String    name;
     private List<String>    photoUrls;
     private List<Map> tags;
     private String    status;
+
+    public AddPetRequetBody(Map<String, String> category,
+                            String name,
+                            List<String> photoUrls,
+                            String status) {
+        this.category = category;
+        this.name = name;
+        this.photoUrls = photoUrls;
+        this.status = status;
+    }
 
     public Integer getId() {
         return id;

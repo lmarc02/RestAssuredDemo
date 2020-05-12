@@ -1,3 +1,4 @@
+import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -20,34 +21,28 @@ public class EndToEndFlow {
     Long id;
     static RequestSpecification requestSpecification;
     static ResponseSpecification responseSpecification;
+    Map<String, String> categoryMap;
+    String name = "Lisa";
+    String statusAvailable = "available";
+    List<String> photoUrls;
+
 
     @BeforeClass
     public void setUp(){
-
         requestSpecification = RestUtilities.getRequestSpecification(MyConstants.PET_PATH);
         responseSpecification = RestUtilities.getResponseSpecifications();
-
     }
 
     @Test
     public void addPet(){
-        Map<String, String> categoryMap = new HashMap<String, String>();
+        categoryMap = new HashMap<String, String>();
         categoryMap.put("id", "0");
-        categoryMap.put("name", "doggie");
-
-        String name = "puffy";
-
-        List<String> photoUrls = new ArrayList<String>();
+        categoryMap.put("name", "Rottweiler");
+        photoUrls = new ArrayList<String>();
         photoUrls.add("www.google.com");
         photoUrls.add("www.abc.com");
 
-        String status = "available";
-
-        AddPetModal pet = new AddPetModal();
-        pet.setCategory(categoryMap);
-        pet.setName(name);
-        pet.setPhotoUrls(photoUrls);
-        pet.setStatus(status);
+        AddPetRequetBody pet = new AddPetRequetBody(categoryMap, name, photoUrls, statusAvailable);
 
         Response response = given().spec(requestSpecification).contentType(ContentType.JSON).body(pet)
                .when()
@@ -64,6 +59,31 @@ public class EndToEndFlow {
         JsonPath jsonPath = RestUtilities.getJsonPath(response);//new JsonPath(response.asString());
         String dogName = jsonPath.get("name");
         String category = jsonPath.get("category.name");
+        System.out.println("Tha pet name is: " + dogName);
+        System.out.println("Pet category is: : " + category);
+    }
+    @Test
+    public void addPet2(){
+        categoryMap = new HashMap<String, String>();
+        categoryMap.put("id", "0");
+        categoryMap.put("name", "Rottweiler");
+
+        photoUrls = new ArrayList<String>();
+        photoUrls.add("www.google.com");
+        photoUrls.add("www.abc.com");
+
+        AddPetRequetBody pet = new AddPetRequetBody(categoryMap, name, photoUrls, statusAvailable);
+
+        Response postResponse = RestUtilities.postPet(requestSpecification, pet);
+        JsonPath jsonPathResponse = RestUtilities.getJsonPath(postResponse);
+
+        id = jsonPathResponse.get("id");
+        RestUtilities.setEndpoint("/" + id);
+        String responseName = jsonPathResponse.get("name");
+        Assert.assertEquals(responseName, name);
+
+        String dogName = jsonPathResponse.get("name");
+        String category = jsonPathResponse.get("category.name");
         System.out.println("Tha pet name is: " + dogName);
         System.out.println("Pet category is: : " + category);
     }
@@ -87,8 +107,6 @@ public class EndToEndFlow {
                //.ifValidationFails()
                .ifError();
 
-
-
         //hard assertion
 //        given().spec(requestSpecification).when()
 //               .get("/" + id)
@@ -105,7 +123,7 @@ public class EndToEndFlow {
                        .statusCode(200)
                        .body("category.id", equalTo(0),
                              "category.id", lessThan(1),
-                             "category.name", equalTo("doggie"));
+                             "category.name", equalTo("Rottweiler"));
         given()
                 .spec(requestSpecification)
                 .when()
@@ -116,9 +134,22 @@ public class EndToEndFlow {
                 .rootPath("category")
                 .body("id", equalTo(0))
                 .body("id", lessThan(1))
-                .body("name", equalTo("doggie"));// now we can create another rootpath if exist an make other tests
+                .body("name", equalTo("Rottweiler"));// now we can create another rootpath if exist an make other tests
+    }
+    @Test(dependsOnMethods = {"addPet"})
+    public void getPet2(){
+        RestUtilities.setEndpoint("/" + id);
 
+        Response response = RestUtilities.getResponse(requestSpecification, "get");
 
+        JsonPath responseJson = RestUtilities.getJsonPath(response);
+
+        id = responseJson.get("id");
+        System.out.println("Pet info: "+response.asString());
+        Assert.assertEquals(responseJson.get("category.id"), 0);
+        Integer categoryId = responseJson.get("category.id");
+        Assert.assertTrue(categoryId < 2);
+        Assert.assertEquals(responseJson.get("category.name"), "Rottweiler");
 
     }
 
@@ -153,7 +184,7 @@ public class EndToEndFlow {
                 .get("/"+id)
         .then()
                 .body("id", equalTo(id))
-                .body("name", equalTo("puffy"));
+                .body("name", equalTo("Lisa"));
 
         System.out.println("basic check successful");
 
@@ -161,8 +192,8 @@ public class EndToEndFlow {
 
     @Test(dependsOnMethods = {"checkResponseTime"})
     public void deletePet(){
-        given().spec(requestSpecification).delete("/"+id);
-        System.out.println("The pet is deleted");
+        RestUtilities.setEndpoint("/"+id);
+        RestUtilities.deletePet(requestSpecification);
     }
 
 }

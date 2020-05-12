@@ -44,11 +44,7 @@ public class PetTest {
 
         String status = "available";
 
-        AddPetModal pet = new AddPetModal();
-        pet.setCategory(categoryMap);
-        pet.setName(name);
-        pet.setPhotoUrls(photoUrls);
-        pet.setStatus(status);
+        AddPetRequetBody pet = new AddPetRequetBody(categoryMap, name, photoUrls, status);
 
         Response response = given().spec(requestSpecification).contentType(ContentType.JSON).body(pet)
                                    .when()
@@ -89,7 +85,6 @@ public class PetTest {
     public void getPet2(){
         RestUtilities.setEndpoint("/" + id);
         Response resp = RestUtilities.getResponse(requestSpecification, "get");
-        //JsonPath jsonPath = RestUtilities.getJsonPath(resp);
         ArrayList<String> photoUrlList = resp.path("photoUrls");
         Assert.assertTrue(photoUrlList.contains("www.abc.com"));
     }

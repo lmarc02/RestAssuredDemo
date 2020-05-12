@@ -70,6 +70,12 @@ public class RestUtilities {
         return response;
     }
 
+    public static Response postPet(RequestSpecification requestSpecification, AddPetRequetBody petBody){
+        Response resp = given().spec(requestSpecification).contentType(ContentType.JSON).body(petBody).when().post();
+        resp.then().log().all();
+        return  resp;
+    }
+
     public static JsonPath getJsonPath(Response response){
         String jsonPath = response.asString();
         return new JsonPath(jsonPath);
@@ -86,5 +92,10 @@ public class RestUtilities {
 
     public static void setCotentType(ContentType type){
         given().contentType(type);
+    }
+
+    public static void deletePet(RequestSpecification requestSpecification){
+        given().spec(requestSpecification).delete(ENDPOINT);
+        System.out.println("The pet is deleted");
     }
 }
